@@ -3,34 +3,47 @@
 ;defining utility functions
 
 ;get current window state (unplaced, already in start position, onethird, twothirds)
-GetCurrentWindowState()
-{
-
-}
-;get current window size/position
-;implementation not required WinGetClientPos exists
-;https://www.autohotkey.com/docs/v2/lib/WinGetClientPos.htm
-
-;get screen resolution
-GetScreenResolution()
+GetCurrentWindowState(hotkey)
 {
 
 }
 
-;set window position
-SetWindowPosition()
+;just looks at corner position for now could be improved to look at screen areas
+;https://stackoverflow.com/questions/59883798/determine-which-monitor-the-focus-window-is-on
+GetActiveMonitorNumber()
 {
-    ActiveHwnd := WinExist("A")
+    WinGetClientPos(&windowXPos, &windowYPos, &windowWidthPX, &windowHeightPX, "A")
+
+    Loop MonitorGetCount() {
+
+        MonitorGetWorkArea(A_Index, &WL, &WT, &WR, &WB)
+
+        xPosInWorkArea := (WL <= windowXPos && windowXPos <= WR)
+        yPosInWorkArea := (WT <= windowYPos && windowYPos <= WB)
+
+        if(xPosInWorkArea && yPosInWorkArea) {
+            return A_Index
+        }
+
+    }
+
+    return 1 ;default to primary monitor
 }
 
 
 ;defining hotkeys
-;move windows on different screens
-
-
 ;move windows on same screen
 #!Left::
 {
-    WinGetClientPos(&x, &Y, &W, &H, "A")
-    MsgBox("Length " x)
+
+    ActiveMonitorNumber := GetActiveMonitorNumber()
+
+    MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
+
+    WinMove(Left, Top, Abs(Right - Left) / 2, Bottom, "A", , , )
+
+    ;WinGetClientPos(&x, &Y, &W, &H, "A")
+
+    ;MsgBox("x position " x)
+
 }
