@@ -1,6 +1,15 @@
 #Requires AutoHotkey v2.0
 
 ;defining utility functions
+PxMidpoint(x1, x2)
+{
+    return (x1 + x2) / 2
+}
+
+PxDistance(x1, x2)
+{
+    return (Abs(x1) + Abs(x2))
+}
 
 ;get current window state (unplaced, already in start position, onethird, twothirds)
 GetCurrentWindowState(hotkey)
@@ -27,7 +36,7 @@ GetActiveMonitorNumber()
 
     }
 
-    return 1 ;default to primary monitor
+    return 1 ;default to primary monitor if no match
 }
 
 
@@ -40,10 +49,47 @@ GetActiveMonitorNumber()
 
     MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
 
-    WinMove(Left, Top, Abs(Right - Left) / 2, Bottom, "A", , , )
+    WinMove(Left, Top, PxDistance(Right, Left) / 2, PxDistance(Bottom, Top), "A", , , )
 
     ;WinGetClientPos(&x, &Y, &W, &H, "A")
 
-    ;MsgBox("x position " x)
+}
+
+#!Right::
+{
+
+    ActiveMonitorNumber := GetActiveMonitorNumber()
+
+    MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
+
+    WinMove(PxMidpoint(Right, Left), Top, PxDistance(Right, Left) / 2, PxDistance(Bottom, Top), "A", , , )
+
+    ;WinGetClientPos(&x, &Y, &W, &H, "A")
+
+}
+
+#!Up::
+{
+
+    ActiveMonitorNumber := GetActiveMonitorNumber()
+
+    MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
+
+    WinMove(Left, Top, PxDistance(Right, Left), PxDistance(Bottom, Top) / 2, "A", , , )
+
+    ;WinGetClientPos(&x, &Y, &W, &H, "A")
+
+}
+
+#!Down::
+{
+
+    ActiveMonitorNumber := GetActiveMonitorNumber()
+
+    MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
+
+    WinMove(Left, PxMidpoint(Bottom, Top), PxDistance(Right, Left), PxDistance(Bottom, Top), "A", , , )
+
+    ;WinGetClientPos(&x, &Y, &W, &H, "A")
 
 }
