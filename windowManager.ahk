@@ -39,6 +39,17 @@ GetActiveMonitorNumber()
     return 1 ;default to primary monitor if no match
 }
 
+GetLeftMonitorNumber()
+{
+    ActiveMonitorNumber := GetActiveMonitorNumber()
+
+    if(ActiveMonitorNumber = 1) {
+        return MonitorGetCount()
+    } else {
+        return ActiveMonitorNumber - 1
+    }
+}
+
 
 ;WinGetClientPos(&x, &Y, &W, &H, "A") ;saving this for future reference
 
@@ -94,6 +105,17 @@ GetActiveMonitorNumber()
     ActiveMonitorNumber := GetActiveMonitorNumber()
 
     MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
+
+    WinMove(Left, Top, PxDistance(Right, Left), PxDistance(Bottom, Top), "A", , , )
+
+}
+
+#^!<::
+{
+
+    LeftMonitorNumber := GetLeftMonitorNumber()
+
+    MonitorGetWorkArea(LeftMonitorNumber, &Left, &Top, &Right, &Bottom)
 
     WinMove(Left, Top, PxDistance(Right, Left), PxDistance(Bottom, Top), "A", , , )
 
