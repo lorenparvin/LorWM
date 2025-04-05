@@ -46,7 +46,18 @@ GetLeftMonitorNumber()
     if(ActiveMonitorNumber = 1) {
         return MonitorGetCount()
     } else {
-        return ActiveMonitorNumber - 1
+        return ActiveMonitorNumber--
+    }
+}
+
+GetRightMonitorNumber()
+{
+    ActiveMonitorNumber := GetActiveMonitorNumber()
+
+    if(ActiveMonitorNumber == MonitorGetCount()) {
+        return 1 ;primary monitor number
+    } else {
+        return ActiveMonitorNumber++
     }
 }
 
@@ -110,7 +121,8 @@ GetLeftMonitorNumber()
 
 }
 
-#^!<::
+;move windows between different screens
+#^!Left::
 {
 
     LeftMonitorNumber := GetLeftMonitorNumber()
@@ -119,4 +131,15 @@ GetLeftMonitorNumber()
 
     WinMove(Left, Top, PxDistance(Right, Left), PxDistance(Bottom, Top), "A", , , )
 
+}
+
+#^!Right::
+{
+
+    RightMonitorNumber := GetRightMonitorNumber()
+
+    MonitorGetWorkArea(RightMonitorNumber, &Left, &Top, &Right, &Bottom)
+
+    WinMove(Left, Top, PxDistance(Right, Left), PxDistance(Bottom, Top), "A", , , )
+    
 }
