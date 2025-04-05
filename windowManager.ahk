@@ -12,9 +12,32 @@ PxDistance(x1, x2)
 }
 
 ;get current window state (unplaced, already in start position, onethird, twothirds)
-GetCurrentWindowState(hotkey)
+GetCurrentWindowState(Hotkey, MonitorWidth, &LeftmostWindowPxVal, &RightmostWindowPxVal)
 {
 
+    TwoThirdsDistance := (MonitorWidth / 3) * 2
+    OneThirdDistance := (MonitorWidth / 3)
+    OneHalfDistance := (MonitorWidth / 2)
+
+    if(Hotkey == '#!Left') {
+        
+        DistanceFromRightSide := MonitorWidth - RightmostWindowPxVal
+
+        if(DistanceFromRightSide == OneHalfDistance) { ;halfposition
+
+            RightmostWindowPxVal := TwoThirdsDistance
+
+        } else if(DistanceFromRightSide == OneThirdDistance) { ;twothirdsposition
+
+            RightmostWindowPxVal := OneThirdDistance
+
+        } else if(DistanceFromRightSide == TwoThirdsDistance) { ;onethirdposition
+
+            RightmostWindowPxVal := OneHalfDistance
+
+        }
+
+    }
 }
 
 ;just looks at corner position for now could be improved to look at screen areas
@@ -36,14 +59,14 @@ GetActiveMonitorNumber()
 
     }
 
-    return 1 ;default to primary monitor if no match
+    return 1 ;primary monitor number
 }
 
 GetLeftMonitorNumber()
 {
     ActiveMonitorNumber := GetActiveMonitorNumber()
 
-    if(ActiveMonitorNumber = 1) {
+    if(ActiveMonitorNumber == 1) {
         return MonitorGetCount()
     } else {
         return ActiveMonitorNumber--
@@ -72,6 +95,8 @@ GetRightMonitorNumber()
     ActiveMonitorNumber := GetActiveMonitorNumber()
 
     MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
+
+    ;GetCurrentWindowState
 
     WinMove(Left, Top, PxDistance(Right, Left) / 2, PxDistance(Bottom, Top), "A", , , )
 
