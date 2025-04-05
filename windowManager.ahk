@@ -88,7 +88,20 @@ GetActiveMonitorNumber()
 
     MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
 
-    WinMove(Left, PxMidpoint(Bottom, Top), PxDistance(Right, Left), PxDistance(Bottom, Top), "A", , , )
+    WinMove(Left, PxMidpoint(Bottom, Top), PxDistance(Right, Left), PxDistance(Bottom, Top) / 2, "A", , , )
+
+    ;WinGetClientPos(&x, &Y, &W, &H, "A")
+
+}
+
+#!f::
+{
+
+    ActiveMonitorNumber := GetActiveMonitorNumber()
+
+    MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
+
+    WinMove(Left, Top, PxDistance(Right, Left), PxDistance(Bottom, Top), "A", , , )
 
     ;WinGetClientPos(&x, &Y, &W, &H, "A")
 
