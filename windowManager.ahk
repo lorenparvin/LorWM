@@ -40,6 +40,8 @@ GetActiveMonitorNumber()
 }
 
 
+;WinGetClientPos(&x, &Y, &W, &H, "A") ;saving this for future reference
+
 ;defining hotkeys
 ;move windows on same screen
 #!Left::
@@ -50,8 +52,6 @@ GetActiveMonitorNumber()
     MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
 
     WinMove(Left, Top, PxDistance(Right, Left) / 2, PxDistance(Bottom, Top), "A", , , )
-
-    ;WinGetClientPos(&x, &Y, &W, &H, "A")
 
 }
 
@@ -64,8 +64,6 @@ GetActiveMonitorNumber()
 
     WinMove(PxMidpoint(Right, Left), Top, PxDistance(Right, Left) / 2, PxDistance(Bottom, Top), "A", , , )
 
-    ;WinGetClientPos(&x, &Y, &W, &H, "A")
-
 }
 
 #!Up::
@@ -76,8 +74,6 @@ GetActiveMonitorNumber()
     MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
 
     WinMove(Left, Top, PxDistance(Right, Left), PxDistance(Bottom, Top) / 2, "A", , , )
-
-    ;WinGetClientPos(&x, &Y, &W, &H, "A")
 
 }
 
@@ -90,8 +86,6 @@ GetActiveMonitorNumber()
 
     WinMove(Left, PxMidpoint(Bottom, Top), PxDistance(Right, Left), PxDistance(Bottom, Top) / 2, "A", , , )
 
-    ;WinGetClientPos(&x, &Y, &W, &H, "A")
-
 }
 
 #!f::
@@ -102,7 +96,5 @@ GetActiveMonitorNumber()
     MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
 
     WinMove(Left, Top, PxDistance(Right, Left), PxDistance(Bottom, Top), "A", , , )
-
-    ;WinGetClientPos(&x, &Y, &W, &H, "A")
 
 }
