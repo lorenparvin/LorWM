@@ -133,7 +133,12 @@ GetRightMonitorNumber()
     ScreenWidth := PxDistance(Right, Left)
     ScreenHeight := PxDistance(Bottom, Top)
 
-    NewWindowWidth := (ScreenWidth > ScreenHeight) ? GetWindowWidthBySnapState("#!Right", ScreenWidth, &WindowXPos, WindowXPos + WindowWidthPX) : ScreenWidth / 2
+    if(ScreenWidth > ScreenHeight) {
+        NewWindowWidth := GetWindowWidthBySnapState("#!Right", ScreenWidth, &WindowXPos, WindowXPos + WindowWidthPX)
+    } else {
+        NewWindowWidth := ScreenWidth / 2
+        WindowXPos := PxMidpoint(Right, Left)
+    }
 
     WinMove(WindowXPos, Top, NewWindowWidth, ScreenHeight, "A", , , )
 
