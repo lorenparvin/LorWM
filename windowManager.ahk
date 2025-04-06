@@ -155,6 +155,7 @@ AdjustValuesForOffset(&XPos, XOffset, &YPos, YOffset, &Width, WidthDelta, &Heigh
 ;move windows on same screen
 #!Left::
 {
+
     CalculateWindowOffset(&XOffset, &YOffset, &WindowWidthDelta, &WindowHeightDelta)
 
     ActiveMonitorNumber := GetActiveMonitorNumber(XOffset)
@@ -181,6 +182,7 @@ AdjustValuesForOffset(&XPos, XOffset, &YPos, YOffset, &Width, WidthDelta, &Heigh
 
 #!Right::
 {
+
     CalculateWindowOffset(&XOffset, &YOffset, &WindowWidthDelta, &WindowHeightDelta)
 
     ActiveMonitorNumber := GetActiveMonitorNumber(XOffset)
@@ -208,32 +210,41 @@ AdjustValuesForOffset(&XPos, XOffset, &YPos, YOffset, &Width, WidthDelta, &Heigh
 
 #!Up::
 {
+
     CalculateWindowOffset(&XOffset, &YOffset, &WindowWidthDelta, &WindowHeightDelta)
 
     ActiveMonitorNumber := GetActiveMonitorNumber(XOffset)
 
     MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
 
-    NewWindowWidth := PxDistance(Right, Left) + WindowWidthDelta
+    ScreenWidth := PxDistance(Right, Left)
 
-    NewWindowHeight := (PxDistance(Bottom, Top) / 2) + WindowHeightDelta
+    HalfScreenHeight := (PxDistance(Bottom, Top) / 2)
 
-    NewXPos := Left - XOffset
+    AdjustValuesForOffset(&Left, XOffset, &Top, YOffset, &ScreenWidth, WindowWidthDelta, &HalfScreenHeight, WindowHeightDelta)
 
-    NewYPos := Right - YOffset
-
-    WinMove(NewXPos, NewYPos, NewWindowWidth, PxDistance(Bottom, Top) / 2, "A", , , )
+    WinMove(Left, Top, ScreenWidth, HalfScreenHeight, "A", , , )
 
 }
 
 #!Down::
 {
 
-    ActiveMonitorNumber := GetActiveMonitorNumber()
+    CalculateWindowOffset(&XOffset, &YOffset, &WindowWidthDelta, &WindowHeightDelta)
+
+    ActiveMonitorNumber := GetActiveMonitorNumber(XOffset)
 
     MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
 
-    WinMove(Left, PxMidpoint(Bottom, Top), PxDistance(Right, Left), PxDistance(Bottom, Top) / 2, "A", , , )
+    ScreenWidth := PxDistance(Right, Left)
+
+    HalfScreenHeight := (PxDistance(Bottom, Top) / 2)
+
+    YPositionHalfwayDownScreen := PxMidpoint(Bottom, Top)
+
+    AdjustValuesForOffset(&Left, XOffset, &YPositionHalfwayDownScreen, YOffset, &ScreenWidth, WindowWidthDelta, &HalfScreenHeight, WindowHeightDelta)
+
+    WinMove(Left, YPositionHalfwayDownScreen, ScreenWidth, HalfScreenHeight, "A", , , )
 
 }
 
