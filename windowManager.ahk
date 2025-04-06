@@ -63,7 +63,7 @@ GetXCoordinateFromArrowKeyPress(Hotkey, Distance, MonitorWidth)
 ;https://stackoverflow.com/questions/59883798/determine-which-monitor-the-focus-window-is-on
 GetActiveMonitorNumber()
 {
-    WinGetClientPos(&windowXPos, &windowYPos, &windowWidthPX, &windowHeightPX, "A")
+    WinGetPos(&windowXPos, &windowYPos, &windowWidthPX, &windowHeightPX, "A")
 
     Loop MonitorGetCount() {
 
@@ -111,7 +111,7 @@ GetRightMonitorNumber()
     ActiveMonitorNumber := GetActiveMonitorNumber()
 
     MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
-    WinGetClientPos(&WindowXPos, &WindowYPos, &WindowWidthPX, &WindowHeightPX, "A")
+    WinGetPos(&WindowXPos, &WindowYPos, &WindowWidthPX, &WindowHeightPX, "A")
 
     ScreenWidth := PxDistance(Right, Left)
     ScreenHeight := PxDistance(Bottom, Top)
@@ -128,7 +128,7 @@ GetRightMonitorNumber()
     ActiveMonitorNumber := GetActiveMonitorNumber()
 
     MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
-    WinGetClientPos(&WindowXPos, &WindowYPos, &WindowWidthPX, &WindowHeightPX, "A")
+    WinGetPos(&WindowXPos, &WindowYPos, &WindowWidthPX, &WindowHeightPX, "A")
 
     ScreenWidth := PxDistance(Right, Left)
     ScreenHeight := PxDistance(Bottom, Top)
@@ -187,7 +187,7 @@ GetRightMonitorNumber()
 
     OneThirdDistance := PxDistance(Right, Left) / 3
 
-    WinMove(Left, Top, Ceil(OneThirdDistance), PxDistance(Bottom, Top), "A", , , )
+    WinMove(Left, Top, Round(OneThirdDistance), PxDistance(Bottom, Top), "A", , , )
 
 }
 
@@ -199,9 +199,9 @@ GetRightMonitorNumber()
     MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
 
     OneThirdDistance := PxDistance(Right, Left) / 3
-    OneThirdOffset := Ceil(OneThirdDistance) + Left
+    OneThirdOffset := Round(OneThirdDistance) + Left
 
-    WinMove(OneThirdOffset, Top, Ceil(OneThirdDistance), PxDistance(Bottom, Top), "A", , , )
+    WinMove(OneThirdOffset, Top, Round(OneThirdDistance), PxDistance(Bottom, Top), "A", , , )
     
 }
 
@@ -213,9 +213,9 @@ GetRightMonitorNumber()
     MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
 
     OneThirdDistance := PxDistance(Right, Left) / 3
-    TwoThirdsOffset := Ceil(OneThirdDistance * 2) + Left
+    TwoThirdsOffset := Round(OneThirdDistance * 2) + Left
 
-    WinMove(TwoThirdsOffset, Top, Ceil(OneThirdDistance), PxDistance(Bottom, Top), "A", , , )
+    WinMove(TwoThirdsOffset, Top, Round(OneThirdDistance), PxDistance(Bottom, Top), "A", , , )
 
 }
 
