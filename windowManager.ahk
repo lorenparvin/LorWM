@@ -269,42 +269,60 @@ AdjustValuesForOffset(&XPos, XOffset, &YPos, YOffset, &Width, WidthDelta, &Heigh
 ;thirds on same screen
 ^!Left::
 {
+
+    CalculateWindowOffset(&XOffset, &YOffset, &WindowWidthDelta, &WindowHeightDelta)
     
-    ActiveMonitorNumber := GetActiveMonitorNumber()
+    ActiveMonitorNumber := GetActiveMonitorNumber(XOffset)
 
     MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
 
-    OneThirdDistance := PxDistance(Right, Left) / 3
+    OneThirdDistance := Round(PxDistance(Right, Left) / 3)
 
-    WinMove(Left, Top, Round(OneThirdDistance), PxDistance(Bottom, Top), "A", , , )
+    ScreenHeight := PxDistance(Bottom, Top)
+
+    AdjustValuesForOffset(&Left, XOffset, &Top, YOffset, &OneThirdDistance, WindowWidthDelta, &ScreenHeight, WindowHeightDelta)
+
+    WinMove(Left, Top, OneThirdDistance, ScreenHeight, "A", , , )
 
 }
 
 ^!Up::
 {
 
-    ActiveMonitorNumber := GetActiveMonitorNumber()
+    CalculateWindowOffset(&XOffset, &YOffset, &WindowWidthDelta, &WindowHeightDelta)
+
+    ActiveMonitorNumber := GetActiveMonitorNumber(XOffset)
 
     MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
 
-    OneThirdDistance := PxDistance(Right, Left) / 3
+    OneThirdDistance := Round(PxDistance(Right, Left) / 3)
     OneThirdOffset := Round(OneThirdDistance) + Left
 
-    WinMove(OneThirdOffset, Top, Round(OneThirdDistance), PxDistance(Bottom, Top), "A", , , )
+    ScreenHeight := PxDistance(Bottom, Top)
+
+    AdjustValuesForOffset(&OneThirdOffset, XOffset, &Top, YOffset, &OneThirdDistance, WindowWidthDelta, &ScreenHeight, WindowHeightDelta)
+
+    WinMove(OneThirdOffset, Top, OneThirdDistance, ScreenHeight, "A", , , )
     
 }
 
 ^!Right::
 {
+
+    CalculateWindowOffset(&XOffset, &YOffset, &WindowWidthDelta, &WindowHeightDelta)
     
-    ActiveMonitorNumber := GetActiveMonitorNumber()
+    ActiveMonitorNumber := GetActiveMonitorNumber(XOffset)
 
     MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
 
-    OneThirdDistance := PxDistance(Right, Left) / 3
+    OneThirdDistance := Round(PxDistance(Right, Left) / 3)
     TwoThirdsOffset := Round(OneThirdDistance * 2) + Left
 
-    WinMove(TwoThirdsOffset, Top, Round(OneThirdDistance), PxDistance(Bottom, Top), "A", , , )
+    ScreenHeight := PxDistance(Bottom, Top)
+
+    AdjustValuesForOffset(&TwoThirdsOffset, XOffset, &Top, YOffset, &OneThirdDistance, WindowWidthDelta, &ScreenHeight, WindowHeightDelta)
+
+    WinMove(TwoThirdsOffset, Top, OneThirdDistance, ScreenHeight, "A", , , )
 
 }
 
@@ -318,7 +336,13 @@ AdjustValuesForOffset(&XPos, XOffset, &YPos, YOffset, &Width, WidthDelta, &Heigh
 
     MonitorGetWorkArea(LeftMonitorNumber, &Left, &Top, &Right, &Bottom)
 
-    WinMove(Left, Top, PxDistance(Right, Left), PxDistance(Bottom, Top), "A", , , )
+    ScreenWidth := PxDistance(Right, Left)
+
+    ScreenHeight := PxDistance(Bottom, Top)
+
+    AdjustValuesForOffset(&Left, XOffset, &Top, YOffset, &ScreenWidth, WindowWidthDelta, &ScreenHeight, WindowHeightDelta)
+
+    WinMove(Left, Top, ScreenWidth, ScreenHeight, "A", , , )
 
 }
 
@@ -331,6 +355,12 @@ AdjustValuesForOffset(&XPos, XOffset, &YPos, YOffset, &Width, WidthDelta, &Heigh
 
     MonitorGetWorkArea(RightMonitorNumber, &Left, &Top, &Right, &Bottom)
 
-    WinMove(Left, Top, PxDistance(Right, Left), PxDistance(Bottom, Top), "A", , , )
+    ScreenWidth := PxDistance(Right, Left)
+
+    ScreenHeight := PxDistance(Bottom, Top)
+
+    AdjustValuesForOffset(&Left, XOffset, &Top, YOffset, &ScreenWidth, WindowWidthDelta, &ScreenHeight, WindowHeightDelta)
+
+    WinMove(Left, Top, ScreenWidth, ScreenHeight, "A", , , )
     
 }
