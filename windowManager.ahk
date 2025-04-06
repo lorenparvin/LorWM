@@ -177,6 +177,48 @@ GetRightMonitorNumber()
 
 }
 
+;thirds on same screen
+^!Left::
+{
+    
+    ActiveMonitorNumber := GetActiveMonitorNumber()
+
+    MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
+
+    OneThirdDistance := PxDistance(Right, Left) / 3
+
+    WinMove(Left, Top, Ceil(OneThirdDistance), PxDistance(Bottom, Top), "A", , , )
+
+}
+
+^!Up::
+{
+
+    ActiveMonitorNumber := GetActiveMonitorNumber()
+
+    MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
+
+    OneThirdDistance := PxDistance(Right, Left) / 3
+    OneThirdOffset := Ceil(OneThirdDistance) + Left
+
+    WinMove(OneThirdOffset, Top, Ceil(OneThirdDistance), PxDistance(Bottom, Top), "A", , , )
+    
+}
+
+^!Right::
+{
+    
+    ActiveMonitorNumber := GetActiveMonitorNumber()
+
+    MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
+
+    OneThirdDistance := PxDistance(Right, Left) / 3
+    TwoThirdsOffset := Ceil(OneThirdDistance * 2) + Left
+
+    WinMove(TwoThirdsOffset, Top, Ceil(OneThirdDistance), PxDistance(Bottom, Top), "A", , , )
+
+}
+
 ;move windows between different screens
 #^!Left::
 {
