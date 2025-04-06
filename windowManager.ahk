@@ -61,15 +61,17 @@ GetXCoordinateFromArrowKeyPress(Hotkey, Distance, MonitorWidth)
 
 ;just looks at corner position for now could be improved to look at screen areas
 ;https://stackoverflow.com/questions/59883798/determine-which-monitor-the-focus-window-is-on
-GetActiveMonitorNumber()
+GetActiveMonitorNumber(XOffset?)
 {
     WinGetPos(&windowXPos, &windowYPos, &windowWidthPX, &windowHeightPX, "A")
+
+    AdjustedXPos := windowXPos + (XOffset ?? 0)
 
     Loop MonitorGetCount() {
 
         MonitorGetWorkArea(A_Index, &WL, &WT, &WR, &WB)
 
-        xPosInWorkArea := (WL <= windowXPos && windowXPos <= WR)
+        xPosInWorkArea := (WL <= AdjustedXPos && AdjustedXPos <= WR)
         yPosInWorkArea := (WT <= windowYPos && windowYPos <= WB)
 
         if(xPosInWorkArea && yPosInWorkArea) {
@@ -81,9 +83,9 @@ GetActiveMonitorNumber()
     return 1 ;primary monitor number
 }
 
-GetLeftMonitorNumber()
+GetLeftMonitorNumber(XOffset)
 {
-    ActiveMonitorNumber := GetActiveMonitorNumber()
+    ActiveMonitorNumber := GetActiveMonitorNumber(XOffset)
 
     if(ActiveMonitorNumber == 1) {
         return MonitorGetCount()
@@ -92,9 +94,9 @@ GetLeftMonitorNumber()
     }
 }
 
-GetRightMonitorNumber()
+GetRightMonitorNumber(XOffset)
 {
-    ActiveMonitorNumber := GetActiveMonitorNumber()
+    ActiveMonitorNumber := GetActiveMonitorNumber(XOffset)
 
     if(ActiveMonitorNumber == MonitorGetCount()) {
         return 1 ;primary monitor number
@@ -103,29 +105,35 @@ GetRightMonitorNumber()
     }
 }
 
+CalculateWindowOffset(&XOffset, &YOffset, &WindowWidthDelta, &WindowHeightDelta)
+{
+
+    WinGetClientPos(&OutX, &OutY, &OutWidth, &OutHeight, "A")
+    WinGetPos(&WindowXPos, &WindowYPos, &WindowWidthPX, &WindowHeightPX, "A")
+
+    XOffset := PxDistance(WindowXPos, OutX)
+    YOffset := PxDistance(WindowYPos, OutY)
+    WindowWidthDelta := PxDistance(WindowWidthPX, OutWidth)
+    WindowHeightDelta := PxDistance(WindowHeightPX, OutHeight)
+
+}
+
+AdjustValuesForOffset(&XPos, XOffset, &YPos, YOffset, &Width, WidthDelta, &Height, HeightDelta)
+{
+    XPos -= XOffset
+    YPos -= YOffset
+    Width += WidthDelta
+    Height += HeightDelta
+}
+
 ;defining hotkeys
 ;move windows on same screen
 #!Left::
 {
 
-    ActiveMonitorNumber := GetActiveMonitorNumber()
+    CalculateWindowOffset(&XOffset, &YOffset, &WindowWidthDelta, &WindowHeightDelta)
 
-    MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
-    WinGetPos(&WindowXPos, &WindowYPos, &WindowWidthPX, &WindowHeightPX, "A")
-
-    ScreenWidth := PxDistance(Right, Left)
-    ScreenHeight := PxDistance(Bottom, Top)
-
-    NewWindowWidth := (ScreenWidth > ScreenHeight) ? GetWindowWidthBySnapState("#!Left", ScreenWidth, &WindowXPos, WindowXPos + WindowWidthPX) : ScreenWidth / 2
-
-    WinMove(Left, Top, NewWindowWidth, ScreenHeight, "A", , , )
-
-}
-
-#!Right::
-{
-
-    ActiveMonitorNumber := GetActiveMonitorNumber()
+    ActiveMonitorNumber := GetActiveMonitorNumber(XOffset)
 
     MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
     WinGetPos(&WindowXPos, &WindowYPos, &WindowWidthPX, &WindowHeightPX, "A")
@@ -134,88 +142,163 @@ GetRightMonitorNumber()
     ScreenHeight := PxDistance(Bottom, Top)
 
     if(ScreenWidth > ScreenHeight) {
-        NewWindowWidth := GetWindowWidthBySnapState("#!Right", ScreenWidth, &WindowXPos, WindowXPos + WindowWidthPX)
+        LeftmostPxValIncludingBorders := WindowXPos - (WindowWidthDelta / 2)
+        RightmostPxValIncludingBorders := WindowXPos + WindowWidthPX - (WindowWidthDelta / 2)
+        NewWindowWidth := GetWindowWidthBySnapState("#!Left", ScreenWidth, &WindowXPos, RightmostPxValIncludingBorders)
     } else {
         NewWindowWidth := ScreenWidth / 2
-        WindowXPos := PxMidpoint(Right, Left)
     }
 
-    WinMove(WindowXPos, Top, NewWindowWidth, ScreenHeight, "A", , , )
+    AdjustValuesForOffset(&Left, XOffset, &Top, YOffset, &NewWindowWidth, WindowWidthDelta, &ScreenHeight, WindowHeightDelta)
+
+    WinMove(Left, Top, NewWindowWidth, ScreenHeight, "A", , , )
+
+}
+
+#!Right::
+{
+
+    CalculateWindowOffset(&XOffset, &YOffset, &WindowWidthDelta, &WindowHeightDelta)
+
+    ActiveMonitorNumber := GetActiveMonitorNumber(XOffset)
+
+    MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
+    WinGetPos(&WindowXPos, &WindowYPos, &WindowWidthPX, &WindowHeightPX, "A")
+
+    ScreenWidth := PxDistance(Right, Left)
+    ScreenHeight := PxDistance(Bottom, Top)
+
+    if(ScreenWidth > ScreenHeight) {
+        LeftMostPxValIncludingBorders := WindowXPos + XOffset
+        RightmostPxValIncludingBorders := WindowXPos + WindowWidthPX - (WindowWidthDelta / 2)
+        NewWindowWidth := GetWindowWidthBySnapState("#!Right", ScreenWidth, &LeftMostPxValIncludingBorders, RightmostPxValIncludingBorders)
+        NewXPos := LeftMostPxValIncludingBorders
+    } else {
+        NewWindowWidth := ScreenWidth / 2
+        NewXPos := PxMidpoint(Right, Left)
+    }
+
+    AdjustValuesForOffset(&NewXPos, XOffset, &Top, YOffset, &NewWindowWidth, WindowWidthDelta, &ScreenHeight, WindowHeightDelta)
+
+    WinMove(NewXPos, Top, NewWindowWidth, ScreenHeight, "A", , , )
 
 }
 
 #!Up::
 {
 
-    ActiveMonitorNumber := GetActiveMonitorNumber()
+    CalculateWindowOffset(&XOffset, &YOffset, &WindowWidthDelta, &WindowHeightDelta)
+
+    ActiveMonitorNumber := GetActiveMonitorNumber(XOffset)
 
     MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
 
-    WinMove(Left, Top, PxDistance(Right, Left), PxDistance(Bottom, Top) / 2, "A", , , )
+    ScreenWidth := PxDistance(Right, Left)
+
+    HalfScreenHeight := (PxDistance(Bottom, Top) / 2)
+
+    AdjustValuesForOffset(&Left, XOffset, &Top, YOffset, &ScreenWidth, WindowWidthDelta, &HalfScreenHeight, WindowHeightDelta)
+
+    WinMove(Left, Top, ScreenWidth, HalfScreenHeight, "A", , , )
 
 }
 
 #!Down::
 {
 
-    ActiveMonitorNumber := GetActiveMonitorNumber()
+    CalculateWindowOffset(&XOffset, &YOffset, &WindowWidthDelta, &WindowHeightDelta)
+
+    ActiveMonitorNumber := GetActiveMonitorNumber(XOffset)
 
     MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
 
-    WinMove(Left, PxMidpoint(Bottom, Top), PxDistance(Right, Left), PxDistance(Bottom, Top) / 2, "A", , , )
+    ScreenWidth := PxDistance(Right, Left)
+
+    HalfScreenHeight := (PxDistance(Bottom, Top) / 2)
+
+    YPositionHalfwayDownScreen := PxMidpoint(Bottom, Top)
+
+    AdjustValuesForOffset(&Left, XOffset, &YPositionHalfwayDownScreen, YOffset, &ScreenWidth, WindowWidthDelta, &HalfScreenHeight, WindowHeightDelta)
+
+    WinMove(Left, YPositionHalfwayDownScreen, ScreenWidth, HalfScreenHeight, "A", , , )
 
 }
 
 #!f::
 {
+    CalculateWindowOffset(&XOffset, &YOffset, &WindowWidthDelta, &WindowHeightDelta)
 
-    ActiveMonitorNumber := GetActiveMonitorNumber()
+    ActiveMonitorNumber := GetActiveMonitorNumber(XOffset)
 
     MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
 
-    WinMove(Left, Top, PxDistance(Right, Left), PxDistance(Bottom, Top), "A", , , )
+    ScreenWidth := PxDistance(Right, Left)
+
+    ScreenHeight := PxDistance(Bottom, Top)
+
+    AdjustValuesForOffset(&Left, XOffset, &Top, YOffset, &ScreenWidth, WindowWidthDelta, &ScreenHeight, WindowHeightDelta)
+
+    WinMove(Left, Top, ScreenWidth, ScreenHeight, "A", , , )
 
 }
 
 ;thirds on same screen
 ^!Left::
 {
+
+    CalculateWindowOffset(&XOffset, &YOffset, &WindowWidthDelta, &WindowHeightDelta)
     
-    ActiveMonitorNumber := GetActiveMonitorNumber()
+    ActiveMonitorNumber := GetActiveMonitorNumber(XOffset)
 
     MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
 
-    OneThirdDistance := PxDistance(Right, Left) / 3
+    OneThirdDistance := Round(PxDistance(Right, Left) / 3)
 
-    WinMove(Left, Top, Round(OneThirdDistance), PxDistance(Bottom, Top), "A", , , )
+    ScreenHeight := PxDistance(Bottom, Top)
+
+    AdjustValuesForOffset(&Left, XOffset, &Top, YOffset, &OneThirdDistance, WindowWidthDelta, &ScreenHeight, WindowHeightDelta)
+
+    WinMove(Left, Top, OneThirdDistance, ScreenHeight, "A", , , )
 
 }
 
 ^!Up::
 {
 
-    ActiveMonitorNumber := GetActiveMonitorNumber()
+    CalculateWindowOffset(&XOffset, &YOffset, &WindowWidthDelta, &WindowHeightDelta)
+
+    ActiveMonitorNumber := GetActiveMonitorNumber(XOffset)
 
     MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
 
-    OneThirdDistance := PxDistance(Right, Left) / 3
+    OneThirdDistance := Round(PxDistance(Right, Left) / 3)
     OneThirdOffset := Round(OneThirdDistance) + Left
 
-    WinMove(OneThirdOffset, Top, Round(OneThirdDistance), PxDistance(Bottom, Top), "A", , , )
+    ScreenHeight := PxDistance(Bottom, Top)
+
+    AdjustValuesForOffset(&OneThirdOffset, XOffset, &Top, YOffset, &OneThirdDistance, WindowWidthDelta, &ScreenHeight, WindowHeightDelta)
+
+    WinMove(OneThirdOffset, Top, OneThirdDistance, ScreenHeight, "A", , , )
     
 }
 
 ^!Right::
 {
+
+    CalculateWindowOffset(&XOffset, &YOffset, &WindowWidthDelta, &WindowHeightDelta)
     
-    ActiveMonitorNumber := GetActiveMonitorNumber()
+    ActiveMonitorNumber := GetActiveMonitorNumber(XOffset)
 
     MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
 
-    OneThirdDistance := PxDistance(Right, Left) / 3
+    OneThirdDistance := Round(PxDistance(Right, Left) / 3)
     TwoThirdsOffset := Round(OneThirdDistance * 2) + Left
 
-    WinMove(TwoThirdsOffset, Top, Round(OneThirdDistance), PxDistance(Bottom, Top), "A", , , )
+    ScreenHeight := PxDistance(Bottom, Top)
+
+    AdjustValuesForOffset(&TwoThirdsOffset, XOffset, &Top, YOffset, &OneThirdDistance, WindowWidthDelta, &ScreenHeight, WindowHeightDelta)
+
+    WinMove(TwoThirdsOffset, Top, OneThirdDistance, ScreenHeight, "A", , , )
 
 }
 
@@ -223,21 +306,37 @@ GetRightMonitorNumber()
 #^!Left::
 {
 
-    LeftMonitorNumber := GetLeftMonitorNumber()
+    CalculateWindowOffset(&XOffset, &YOffset, &WindowWidthDelta, &WindowHeightDelta)
+    
+    LeftMonitorNumber := GetLeftMonitorNumber(XOffset)
 
     MonitorGetWorkArea(LeftMonitorNumber, &Left, &Top, &Right, &Bottom)
 
-    WinMove(Left, Top, PxDistance(Right, Left), PxDistance(Bottom, Top), "A", , , )
+    ScreenWidth := PxDistance(Right, Left)
+
+    ScreenHeight := PxDistance(Bottom, Top)
+
+    AdjustValuesForOffset(&Left, XOffset, &Top, YOffset, &ScreenWidth, WindowWidthDelta, &ScreenHeight, WindowHeightDelta)
+
+    WinMove(Left, Top, ScreenWidth, ScreenHeight, "A", , , )
 
 }
 
 #^!Right::
 {
 
-    RightMonitorNumber := GetRightMonitorNumber()
+    CalculateWindowOffset(&XOffset, &YOffset, &WindowWidthDelta, &WindowHeightDelta)
+
+    RightMonitorNumber := GetRightMonitorNumber(XOffset)
 
     MonitorGetWorkArea(RightMonitorNumber, &Left, &Top, &Right, &Bottom)
 
-    WinMove(Left, Top, PxDistance(Right, Left), PxDistance(Bottom, Top), "A", , , )
+    ScreenWidth := PxDistance(Right, Left)
+
+    ScreenHeight := PxDistance(Bottom, Top)
+
+    AdjustValuesForOffset(&Left, XOffset, &Top, YOffset, &ScreenWidth, WindowWidthDelta, &ScreenHeight, WindowHeightDelta)
+
+    WinMove(Left, Top, ScreenWidth, ScreenHeight, "A", , , )
     
 }
