@@ -20,9 +20,9 @@ GetWindowWidthBySnapState(Hotkey, MonitorWidth, &LeftmostWindowPxVal, RightmostW
     DistanceFromEdge := Hotkey == '#!Left' ? PxDistance(MonitorWidth, RightmostWindowPxVal) : 
                             Hotkey == '#!Right' ? PxDistance(0, LeftmostWindowPxVal) : 0
 
-    MsgBox("RightmostWindowPxVal `t" RightmostWindowPxVal
-            "`nLeftmostWindowPxVal `t" LeftmostWindowPxVal
-             "`nDistanceFromEdge `t" DistanceFromEdge)
+    ; MsgBox("RightmostWindowPxVal `t" RightmostWindowPxVal
+    ;         "`nLeftmostWindowPxVal `t" LeftmostWindowPxVal
+    ;          "`nDistanceFromEdge `t" DistanceFromEdge)
 
     if(DistanceFromEdge == OneHalfDistance) { ;halfposition
 
@@ -129,18 +129,26 @@ CalculateWindowOffset(&XOffset, &YOffset, &WindowWidthDelta, &WindowHeightDelta)
     WindowWidthDelta := PxDistance(WindowWidthPX, OutWidth)
     WindowHeightDelta := PxDistance(WindowHeightPX, OutHeight)
 
-    MsgBox("WinGetClientPos" 
-            "`n x: `t" OutX
-            "`n y: `t" OutY
-            "`n width: `t" OutWidth
-            "`n height: `t" OutHeight
+    ; MsgBox("WinGetClientPos" 
+    ;         "`n x: `t" OutX
+    ;         "`n y: `t" OutY
+    ;         "`n width: `t" OutWidth
+    ;         "`n height: `t" OutHeight
 
-            "`n WinGetPos" 
-            "`n x: `t" WindowXPos
-            "`n y: `t" WindowYPos
-            "`n width: `t" WindowWidthPX
-            "`n height: `t" WindowHeightPX)
+    ;         "`n WinGetPos" 
+    ;         "`n x: `t" WindowXPos
+    ;         "`n y: `t" WindowYPos
+    ;         "`n width: `t" WindowWidthPX
+    ;         "`n height: `t" WindowHeightPX)
 
+}
+
+AdjustValuesForOffset(&XPos, XOffset, &YPos, YOffset, &Width, WidthDelta, &Height, HeightDelta)
+{
+    XPos -= XOffset
+    YPos -= YOffset
+    Width += WidthDelta
+    Height += HeightDelta
 }
 
 ;defining hotkeys
@@ -165,12 +173,9 @@ CalculateWindowOffset(&XOffset, &YOffset, &WindowWidthDelta, &WindowHeightDelta)
         NewWindowWidth := ScreenWidth / 2
     }
 
-    NewWindowWidth += WindowWidthDelta
-    NewWindowHeight := ScreenHeight + WindowHeightDelta
+    AdjustValuesForOffset(&Left, XOffset, &Top, YOffset, &NewWindowWidth, WindowWidthDelta, &ScreenHeight, WindowHeightDelta)
 
-    NewXPos := Left - XOffset
-
-    WinMove(NewXPos, Top, NewWindowWidth, NewWindowHeight, "A", , , )
+    WinMove(Left, Top, NewWindowWidth, ScreenHeight, "A", , , )
 
 }
 
@@ -189,27 +194,35 @@ CalculateWindowOffset(&XOffset, &YOffset, &WindowWidthDelta, &WindowHeightDelta)
     if(ScreenWidth > ScreenHeight) {
         RightmostPxValIncludingBorders := WindowXPos + WindowWidthPX - (WindowWidthDelta / 2)
         NewWindowWidth := GetWindowWidthBySnapState("#!Right", ScreenWidth, &WindowXPos, RightmostPxValIncludingBorders)
-        NewXPos := WindowXPos - (WindowWidthDelta / 2)
+        NewXPos := WindowXPos
     } else {
         NewWindowWidth := ScreenWidth / 2
-        NewXPos := PxMidpoint(Right, Left) - (WindowWidthDelta / 2)
+        NewXPos := PxMidpoint(Right, Left)
     }
 
-    NewWindowWidth += WindowWidthDelta
-    NewWindowHeight := ScreenHeight + WindowHeightDelta
+    AdjustValuesForOffset(&NewXPos, XOffset, &Top, YOffset, &NewWindowWidth, WindowWidthDelta, &ScreenHeight, WindowHeightDelta)
 
-    WinMove(NewXPos, Top, NewWindowWidth, NewWindowHeight, "A", , , )
+    WinMove(NewXPos, Top, NewWindowWidth, ScreenHeight, "A", , , )
 
 }
 
 #!Up::
 {
+    CalculateWindowOffset(&XOffset, &YOffset, &WindowWidthDelta, &WindowHeightDelta)
 
-    ActiveMonitorNumber := GetActiveMonitorNumber()
+    ActiveMonitorNumber := GetActiveMonitorNumber(XOffset)
 
     MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
 
-    WinMove(Left, Top, PxDistance(Right, Left), PxDistance(Bottom, Top) / 2, "A", , , )
+    NewWindowWidth := PxDistance(Right, Left) + WindowWidthDelta
+
+    NewWindowHeight := (PxDistance(Bottom, Top) / 2) + WindowHeightDelta
+
+    NewXPos := Left - XOffset
+
+    NewYPos := Right - YOffset
+
+    WinMove(NewXPos, NewYPos, NewWindowWidth, PxDistance(Bottom, Top) / 2, "A", , , )
 
 }
 
