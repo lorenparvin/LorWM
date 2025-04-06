@@ -1,11 +1,62 @@
 #Requires AutoHotkey v2.0
 
 ;defining utility functions
-
-;get current window state (unplaced, already in start position, onethird, twothirds)
-GetCurrentWindowState(hotkey)
+PxMidpoint(x1, x2)
 {
+    return (x1 + x2) / 2
+}
 
+PxDistance(x1, x2)
+{
+    return Abs(x1 - x2)
+}
+
+GetWindowWidthBySnapState(Hotkey, MonitorWidth, &LeftmostWindowPxVal, RightmostWindowPxVal)
+{
+    OneThirdDistance := Round((MonitorWidth / 3))
+    TwoThirdsDistance := Round((MonitorWidth / 3) * 2)
+    OneHalfDistance := Round((MonitorWidth / 2))
+
+    DistanceFromEdge := Hotkey == '#!Left' ? PxDistance(MonitorWidth, RightmostWindowPxVal) : 
+                            Hotkey == '#!Right' ? PxDistance(0, LeftmostWindowPxVal) : 0
+
+    if(DistanceFromEdge == OneHalfDistance) { ;halfposition
+
+        NewWidth := TwoThirdsDistance
+        LeftmostWindowPxVal := GetXCoordinateFromArrowKeyPress(Hotkey, TwoThirdsDistance, MonitorWidth)
+
+    } else if(DistanceFromEdge == OneThirdDistance) { ;twothirdsposition
+
+        NewWidth := OneThirdDistance
+        LeftmostWindowPxVal := GetXCoordinateFromArrowKeyPress(Hotkey, OneThirdDistance, MonitorWidth)
+
+    } else if(DistanceFromEdge == TwoThirdsDistance) { ;onethirdposition
+
+        NewWidth := OneHalfDistance
+        LeftmostWindowPxVal := GetXCoordinateFromArrowKeyPress(Hotkey, OneHalfDistance, MonitorWidth)
+
+    } else {
+
+        NewWidth := OneHalfDistance
+        LeftmostWindowPxVal := GetXCoordinateFromArrowKeyPress(Hotkey, OneHalfDistance, MonitorWidth)
+        
+    }
+
+    return NewWidth
+}
+
+GetXCoordinateFromArrowKeyPress(Hotkey, Distance, MonitorWidth)
+{
+    if(Hotkey == '#!Left') {
+        return 0
+    }
+
+    if(Hotkey == '#!Right') {
+
+        NewXCoordinate := MonitorWidth - Distance
+
+        return NewXCoordinate
+    }
 }
 
 ;just looks at corner position for now could be improved to look at screen areas
@@ -27,9 +78,30 @@ GetActiveMonitorNumber()
 
     }
 
-    return 1 ;default to primary monitor
+    return 1 ;primary monitor number
 }
 
+GetLeftMonitorNumber()
+{
+    ActiveMonitorNumber := GetActiveMonitorNumber()
+
+    if(ActiveMonitorNumber == 1) {
+        return MonitorGetCount()
+    } else {
+        return ActiveMonitorNumber--
+    }
+}
+
+GetRightMonitorNumber()
+{
+    ActiveMonitorNumber := GetActiveMonitorNumber()
+
+    if(ActiveMonitorNumber == MonitorGetCount()) {
+        return 1 ;primary monitor number
+    } else {
+        return ActiveMonitorNumber++
+    }
+}
 
 ;defining hotkeys
 ;move windows on same screen
@@ -39,11 +111,86 @@ GetActiveMonitorNumber()
     ActiveMonitorNumber := GetActiveMonitorNumber()
 
     MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
+    WinGetClientPos(&WindowXPos, &WindowYPos, &WindowWidthPX, &WindowHeightPX, "A")
 
-    WinMove(Left, Top, Abs(Right - Left) / 2, Bottom, "A", , , )
+    ScreenWidth := PxDistance(Right, Left)
+    ScreenHeight := PxDistance(Bottom, Top)
 
-    ;WinGetClientPos(&x, &Y, &W, &H, "A")
+    NewWindowWidth := (ScreenWidth > ScreenHeight) ? GetWindowWidthBySnapState("#!Left", ScreenWidth, &WindowXPos, WindowXPos + WindowWidthPX) : ScreenWidth / 2
 
-    ;MsgBox("x position " x)
+    WinMove(Left, Top, NewWindowWidth, ScreenHeight, "A", , , )
 
+}
+
+#!Right::
+{
+
+    ActiveMonitorNumber := GetActiveMonitorNumber()
+
+    MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
+    WinGetClientPos(&WindowXPos, &WindowYPos, &WindowWidthPX, &WindowHeightPX, "A")
+
+    ScreenWidth := PxDistance(Right, Left)
+    ScreenHeight := PxDistance(Bottom, Top)
+
+    NewWindowWidth := (ScreenWidth > ScreenHeight) ? GetWindowWidthBySnapState("#!Right", ScreenWidth, &WindowXPos, WindowXPos + WindowWidthPX) : ScreenWidth / 2
+
+    WinMove(WindowXPos, Top, NewWindowWidth, ScreenHeight, "A", , , )
+
+}
+
+#!Up::
+{
+
+    ActiveMonitorNumber := GetActiveMonitorNumber()
+
+    MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
+
+    WinMove(Left, Top, PxDistance(Right, Left), PxDistance(Bottom, Top) / 2, "A", , , )
+
+}
+
+#!Down::
+{
+
+    ActiveMonitorNumber := GetActiveMonitorNumber()
+
+    MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
+
+    WinMove(Left, PxMidpoint(Bottom, Top), PxDistance(Right, Left), PxDistance(Bottom, Top) / 2, "A", , , )
+
+}
+
+#!f::
+{
+
+    ActiveMonitorNumber := GetActiveMonitorNumber()
+
+    MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
+
+    WinMove(Left, Top, PxDistance(Right, Left), PxDistance(Bottom, Top), "A", , , )
+
+}
+
+;move windows between different screens
+#^!Left::
+{
+
+    LeftMonitorNumber := GetLeftMonitorNumber()
+
+    MonitorGetWorkArea(LeftMonitorNumber, &Left, &Top, &Right, &Bottom)
+
+    WinMove(Left, Top, PxDistance(Right, Left), PxDistance(Bottom, Top), "A", , , )
+
+}
+
+#^!Right::
+{
+
+    RightMonitorNumber := GetRightMonitorNumber()
+
+    MonitorGetWorkArea(RightMonitorNumber, &Left, &Top, &Right, &Bottom)
+
+    WinMove(Left, Top, PxDistance(Right, Left), PxDistance(Bottom, Top), "A", , , )
+    
 }
