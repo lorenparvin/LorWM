@@ -133,7 +133,12 @@ GetRightMonitorNumber()
     ScreenWidth := PxDistance(Right, Left)
     ScreenHeight := PxDistance(Bottom, Top)
 
-    NewWindowWidth := (ScreenWidth > ScreenHeight) ? GetWindowWidthBySnapState("#!Right", ScreenWidth, &WindowXPos, WindowXPos + WindowWidthPX) : ScreenWidth / 2
+    if(ScreenWidth > ScreenHeight) {
+        NewWindowWidth := GetWindowWidthBySnapState("#!Right", ScreenWidth, &WindowXPos, WindowXPos + WindowWidthPX)
+    } else {
+        NewWindowWidth := ScreenWidth / 2
+        WindowXPos := PxMidpoint(Right, Left)
+    }
 
     WinMove(WindowXPos, Top, NewWindowWidth, ScreenHeight, "A", , , )
 
@@ -169,6 +174,48 @@ GetRightMonitorNumber()
     MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
 
     WinMove(Left, Top, PxDistance(Right, Left), PxDistance(Bottom, Top), "A", , , )
+
+}
+
+;thirds on same screen
+^!Left::
+{
+    
+    ActiveMonitorNumber := GetActiveMonitorNumber()
+
+    MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
+
+    OneThirdDistance := PxDistance(Right, Left) / 3
+
+    WinMove(Left, Top, Ceil(OneThirdDistance), PxDistance(Bottom, Top), "A", , , )
+
+}
+
+^!Up::
+{
+
+    ActiveMonitorNumber := GetActiveMonitorNumber()
+
+    MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
+
+    OneThirdDistance := PxDistance(Right, Left) / 3
+    OneThirdOffset := Ceil(OneThirdDistance) + Left
+
+    WinMove(OneThirdOffset, Top, Ceil(OneThirdDistance), PxDistance(Bottom, Top), "A", , , )
+    
+}
+
+^!Right::
+{
+    
+    ActiveMonitorNumber := GetActiveMonitorNumber()
+
+    MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
+
+    OneThirdDistance := PxDistance(Right, Left) / 3
+    TwoThirdsOffset := Ceil(OneThirdDistance * 2) + Left
+
+    WinMove(TwoThirdsOffset, Top, Ceil(OneThirdDistance), PxDistance(Bottom, Top), "A", , , )
 
 }
 
