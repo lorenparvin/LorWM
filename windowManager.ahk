@@ -8,35 +8,54 @@ PxMidpoint(x1, x2)
 
 PxDistance(x1, x2)
 {
-    return (Abs(x1) + Abs(x2))
+    return Abs(x1 - x2)
 }
 
-;get current window state (unplaced, already in start position, onethird, twothirds)
-GetCurrentWindowState(Hotkey, MonitorWidth, &LeftmostWindowPxVal, &RightmostWindowPxVal)
+GetWindowWidthBySnapState(Hotkey, MonitorWidth, &LeftmostWindowPxVal, RightmostWindowPxVal)
 {
+    OneThirdDistance := Round((MonitorWidth / 3))
+    TwoThirdsDistance := Round((MonitorWidth / 3) * 2)
+    OneHalfDistance := Round((MonitorWidth / 2))
 
-    TwoThirdsDistance := (MonitorWidth / 3) * 2
-    OneThirdDistance := (MonitorWidth / 3)
-    OneHalfDistance := (MonitorWidth / 2)
+    DistanceFromEdge := Hotkey == '#!Left' ? PxDistance(MonitorWidth, RightmostWindowPxVal) : 
+                            Hotkey == '#!Right' ? PxDistance(0, LeftmostWindowPxVal) : 0
 
-    if(Hotkey == '#!Left') {
+    if(DistanceFromEdge == OneHalfDistance) { ;halfposition
+
+        NewWidth := TwoThirdsDistance
+        LeftmostWindowPxVal := GetXCoordinateFromArrowKeyPress(Hotkey, TwoThirdsDistance, MonitorWidth)
+
+    } else if(DistanceFromEdge == OneThirdDistance) { ;twothirdsposition
+
+        NewWidth := OneThirdDistance
+        LeftmostWindowPxVal := GetXCoordinateFromArrowKeyPress(Hotkey, OneThirdDistance, MonitorWidth)
+
+    } else if(DistanceFromEdge == TwoThirdsDistance) { ;onethirdposition
+
+        NewWidth := OneHalfDistance
+        LeftmostWindowPxVal := GetXCoordinateFromArrowKeyPress(Hotkey, OneHalfDistance, MonitorWidth)
+
+    } else {
+
+        NewWidth := OneHalfDistance
+        LeftmostWindowPxVal := GetXCoordinateFromArrowKeyPress(Hotkey, OneHalfDistance, MonitorWidth)
         
-        DistanceFromRightSide := MonitorWidth - RightmostWindowPxVal
+    }
 
-        if(DistanceFromRightSide == OneHalfDistance) { ;halfposition
+    return NewWidth
+}
 
-            RightmostWindowPxVal := TwoThirdsDistance
+GetXCoordinateFromArrowKeyPress(Hotkey, Distance, MonitorWidth)
+{
+    if(Hotkey == '#!Left') {
+        return 0
+    }
 
-        } else if(DistanceFromRightSide == OneThirdDistance) { ;twothirdsposition
+    if(Hotkey == '#!Right') {
 
-            RightmostWindowPxVal := OneThirdDistance
+        NewXCoordinate := MonitorWidth - Distance
 
-        } else if(DistanceFromRightSide == TwoThirdsDistance) { ;onethirdposition
-
-            RightmostWindowPxVal := OneHalfDistance
-
-        }
-
+        return NewXCoordinate
     }
 }
 
@@ -84,9 +103,6 @@ GetRightMonitorNumber()
     }
 }
 
-
-;WinGetClientPos(&x, &Y, &W, &H, "A") ;saving this for future reference
-
 ;defining hotkeys
 ;move windows on same screen
 #!Left::
@@ -95,10 +111,14 @@ GetRightMonitorNumber()
     ActiveMonitorNumber := GetActiveMonitorNumber()
 
     MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
+    WinGetClientPos(&WindowXPos, &WindowYPos, &WindowWidthPX, &WindowHeightPX, "A")
 
-    ;GetCurrentWindowState
+    ScreenWidth := PxDistance(Right, Left)
+    ScreenHeight := PxDistance(Bottom, Top)
 
-    WinMove(Left, Top, PxDistance(Right, Left) / 2, PxDistance(Bottom, Top), "A", , , )
+    NewWindowWidth := (ScreenWidth > ScreenHeight) ? GetWindowWidthBySnapState("#!Left", ScreenWidth, &WindowXPos, WindowXPos + WindowWidthPX) : ScreenWidth / 2
+
+    WinMove(Left, Top, NewWindowWidth, ScreenHeight, "A", , , )
 
 }
 
@@ -108,8 +128,14 @@ GetRightMonitorNumber()
     ActiveMonitorNumber := GetActiveMonitorNumber()
 
     MonitorGetWorkArea(ActiveMonitorNumber, &Left, &Top, &Right, &Bottom)
+    WinGetClientPos(&WindowXPos, &WindowYPos, &WindowWidthPX, &WindowHeightPX, "A")
 
-    WinMove(PxMidpoint(Right, Left), Top, PxDistance(Right, Left) / 2, PxDistance(Bottom, Top), "A", , , )
+    ScreenWidth := PxDistance(Right, Left)
+    ScreenHeight := PxDistance(Bottom, Top)
+
+    NewWindowWidth := (ScreenWidth > ScreenHeight) ? GetWindowWidthBySnapState("#!Right", ScreenWidth, &WindowXPos, WindowXPos + WindowWidthPX) : ScreenWidth / 2
+
+    WinMove(WindowXPos, Top, NewWindowWidth, ScreenHeight, "A", , , )
 
 }
 
