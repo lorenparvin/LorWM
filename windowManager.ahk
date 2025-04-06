@@ -20,10 +20,6 @@ GetWindowWidthBySnapState(Hotkey, MonitorWidth, &LeftmostWindowPxVal, RightmostW
     DistanceFromEdge := Hotkey == '#!Left' ? PxDistance(MonitorWidth, RightmostWindowPxVal) : 
                             Hotkey == '#!Right' ? PxDistance(0, LeftmostWindowPxVal) : 0
 
-    ; MsgBox("RightmostWindowPxVal `t" RightmostWindowPxVal
-    ;         "`nLeftmostWindowPxVal `t" LeftmostWindowPxVal
-    ;          "`nDistanceFromEdge `t" DistanceFromEdge)
-
     if(DistanceFromEdge == OneHalfDistance) { ;halfposition
 
         NewWidth := TwoThirdsDistance
@@ -78,15 +74,6 @@ GetActiveMonitorNumber(XOffset?)
         xPosInWorkArea := (WL <= AdjustedXPos && AdjustedXPos <= WR)
         yPosInWorkArea := (WT <= windowYPos && windowYPos <= WB)
 
-        ; MsgBox("windowXPos `t" windowXPos
-        ;      "`nAdjustedXPos `t" AdjustedXPos
-        ;     "`nWL `t" WL
-        ;     "`nWT `t" WT
-        ;     "`nWR `t" WR
-        ;     "`nWB `t" WB
-        ;     "`nxPosInWorkArea `t" xPosInWorkArea
-        ;     "`nPosInWorkArea `t" yPosInWorkArea)
-
         if(xPosInWorkArea && yPosInWorkArea) {
             return A_Index
         }
@@ -128,18 +115,6 @@ CalculateWindowOffset(&XOffset, &YOffset, &WindowWidthDelta, &WindowHeightDelta)
     YOffset := PxDistance(WindowYPos, OutY)
     WindowWidthDelta := PxDistance(WindowWidthPX, OutWidth)
     WindowHeightDelta := PxDistance(WindowHeightPX, OutHeight)
-
-    ; MsgBox("WinGetClientPos" 
-    ;         "`n x: `t" OutX
-    ;         "`n y: `t" OutY
-    ;         "`n width: `t" OutWidth
-    ;         "`n height: `t" OutHeight
-
-    ;         "`n WinGetPos" 
-    ;         "`n x: `t" WindowXPos
-    ;         "`n y: `t" WindowYPos
-    ;         "`n width: `t" WindowWidthPX
-    ;         "`n height: `t" WindowHeightPX)
 
 }
 
@@ -194,9 +169,10 @@ AdjustValuesForOffset(&XPos, XOffset, &YPos, YOffset, &Width, WidthDelta, &Heigh
     ScreenHeight := PxDistance(Bottom, Top)
 
     if(ScreenWidth > ScreenHeight) {
+        LeftMostPxValIncludingBorders := WindowXPos + XOffset
         RightmostPxValIncludingBorders := WindowXPos + WindowWidthPX - (WindowWidthDelta / 2)
-        NewWindowWidth := GetWindowWidthBySnapState("#!Right", ScreenWidth, &WindowXPos, RightmostPxValIncludingBorders)
-        NewXPos := WindowXPos
+        NewWindowWidth := GetWindowWidthBySnapState("#!Right", ScreenWidth, &LeftMostPxValIncludingBorders, RightmostPxValIncludingBorders)
+        NewXPos := LeftMostPxValIncludingBorders
     } else {
         NewWindowWidth := ScreenWidth / 2
         NewXPos := PxMidpoint(Right, Left)
