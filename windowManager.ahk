@@ -134,8 +134,8 @@ AdjustValuesForOffset(&XPos, XOffset, &YPos, YOffset, &Width, WidthDelta, &Heigh
     ScreenHeight := PxDistance(Bottom, Top)
 
     if(ScreenWidth > ScreenHeight) {
-        LeftmostAbs := WindowXPos - (WindowWidthDelta / 2)
-        RightmostAbs := WindowXPos + WindowWidthPX - (WindowWidthDelta / 2)
+        LeftmostAbs := WindowXPos + XOffset
+        RightmostAbs := WindowXPos + WindowWidthPX - (WindowWidthDelta - XOffset)
         NewWindowWidth := GetWindowWidthBySnapState("#!Left", ScreenWidth, Left, &LeftmostAbs, RightmostAbs)
         NewXPos := LeftmostAbs
     } else {
@@ -163,8 +163,8 @@ AdjustValuesForOffset(&XPos, XOffset, &YPos, YOffset, &Width, WidthDelta, &Heigh
     ScreenHeight := PxDistance(Bottom, Top)
 
     if(ScreenWidth > ScreenHeight) {
-        LeftmostAbs := WindowXPos - (WindowWidthDelta / 2)
-        RightmostAbs := WindowXPos + WindowWidthPX - (WindowWidthDelta / 2)
+        LeftmostAbs := WindowXPos + XOffset
+        RightmostAbs := WindowXPos + WindowWidthPX - (WindowWidthDelta - XOffset)
         NewWindowWidth := GetWindowWidthBySnapState("#!Right", ScreenWidth, Left, &LeftmostAbs, RightmostAbs)
         NewXPos := LeftmostAbs
     } else {
