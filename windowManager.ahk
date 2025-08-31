@@ -11,51 +11,53 @@ PxDistance(x1, x2)
     return Abs(x1 - x2)
 }
 
-GetWindowWidthBySnapState(Hotkey, MonitorWidth, &LeftmostWindowPxVal, RightmostWindowPxVal)
+IsNear(a, b, tol := 4) {
+    return Abs(a - b) <= tol
+}
+
+GetWindowWidthBySnapState(Hotkey, MonitorWidth, MonitorLeft, &LeftmostAbs, RightmostAbs)
 {
     OneThirdDistance := Round((MonitorWidth / 3))
     TwoThirdsDistance := Round((MonitorWidth / 3) * 2)
     OneHalfDistance := Round((MonitorWidth / 2))
 
-    DistanceFromEdge := Hotkey == '#!Left' ? PxDistance(MonitorWidth, RightmostWindowPxVal) : 
-                            Hotkey == '#!Right' ? PxDistance(0, LeftmostWindowPxVal) : 0
+    DistanceFromEdge := Hotkey == '#!Left' 
+                            ? (MonitorLeft + MonitorWidth) - RightmostAbs
+                            : LeftmostAbs - MonitorLeft
 
-    if(DistanceFromEdge == OneHalfDistance) { ;halfposition
+    if(IsNear(DistanceFromEdge, OneHalfDistance)) { ;halfposition
 
         NewWidth := TwoThirdsDistance
-        LeftmostWindowPxVal := GetXCoordinateFromArrowKeyPress(Hotkey, TwoThirdsDistance, MonitorWidth)
+        LeftmostAbs := GetXCoordinateFromArrowKeyPress(Hotkey, TwoThirdsDistance, MonitorWidth, MonitorLeft)
 
-    } else if(DistanceFromEdge == OneThirdDistance) { ;twothirdsposition
+    } else if(IsNear(DistanceFromEdge, OneThirdDistance)) { ;twothirdsposition
 
         NewWidth := OneThirdDistance
-        LeftmostWindowPxVal := GetXCoordinateFromArrowKeyPress(Hotkey, OneThirdDistance, MonitorWidth)
+        LeftmostAbs := GetXCoordinateFromArrowKeyPress(Hotkey, OneThirdDistance, MonitorWidth, MonitorLeft)
 
-    } else if(DistanceFromEdge == TwoThirdsDistance) { ;onethirdposition
+    } else if(IsNear(DistanceFromEdge, TwoThirdsDistance)) { ;onethirdposition
 
         NewWidth := OneHalfDistance
-        LeftmostWindowPxVal := GetXCoordinateFromArrowKeyPress(Hotkey, OneHalfDistance, MonitorWidth)
+        LeftmostAbs := GetXCoordinateFromArrowKeyPress(Hotkey, OneHalfDistance, MonitorWidth, MonitorLeft)
 
     } else {
 
         NewWidth := OneHalfDistance
-        LeftmostWindowPxVal := GetXCoordinateFromArrowKeyPress(Hotkey, OneHalfDistance, MonitorWidth)
+        LeftmostAbs := GetXCoordinateFromArrowKeyPress(Hotkey, OneHalfDistance, MonitorWidth, MonitorLeft)
         
     }
 
     return NewWidth
 }
 
-GetXCoordinateFromArrowKeyPress(Hotkey, Distance, MonitorWidth)
+GetXCoordinateFromArrowKeyPress(Hotkey, Distance, MonitorWidth, MonitorLeft)
 {
     if(Hotkey == '#!Left') {
-        return 0
+        return MonitorLeft
     }
 
     if(Hotkey == '#!Right') {
-
-        NewXCoordinate := MonitorWidth - Distance
-
-        return NewXCoordinate
+        return MonitorLeft + (MonitorWidth - Distance)
     }
 }
 
@@ -86,23 +88,13 @@ GetActiveMonitorNumber(XOffset?)
 GetLeftMonitorNumber(XOffset)
 {
     ActiveMonitorNumber := GetActiveMonitorNumber(XOffset)
-
-    if(ActiveMonitorNumber == 1) {
-        return MonitorGetCount()
-    } else {
-        return ActiveMonitorNumber--
-    }
+    return ActiveMonitorNumber == 1 ? MonitorGetCount() : ActiveMonitorNumber - 1
 }
 
 GetRightMonitorNumber(XOffset)
 {
     ActiveMonitorNumber := GetActiveMonitorNumber(XOffset)
-
-    if(ActiveMonitorNumber == MonitorGetCount()) {
-        return 1 ;primary monitor number
-    } else {
-        return ActiveMonitorNumber++
-    }
+    return ActiveMonitorNumber == MonitorGetCount() ? 1 : ActiveMonitorNumber + 1
 }
 
 CalculateWindowOffset(&XOffset, &YOffset, &WindowWidthDelta, &WindowHeightDelta)
@@ -142,16 +134,18 @@ AdjustValuesForOffset(&XPos, XOffset, &YPos, YOffset, &Width, WidthDelta, &Heigh
     ScreenHeight := PxDistance(Bottom, Top)
 
     if(ScreenWidth > ScreenHeight) {
-        LeftmostPxValIncludingBorders := WindowXPos - (WindowWidthDelta / 2)
-        RightmostPxValIncludingBorders := WindowXPos + WindowWidthPX - (WindowWidthDelta / 2)
-        NewWindowWidth := GetWindowWidthBySnapState("#!Left", ScreenWidth, &WindowXPos, RightmostPxValIncludingBorders)
+        LeftmostAbs := WindowXPos - (WindowWidthDelta / 2)
+        RightmostAbs := WindowXPos + WindowWidthPX - (WindowWidthDelta / 2)
+        NewWindowWidth := GetWindowWidthBySnapState("#!Left", ScreenWidth, Left, &LeftmostAbs, RightmostAbs)
+        NewXPos := LeftmostAbs
     } else {
-        NewWindowWidth := ScreenWidth / 2
+        NewWindowWidth := Round(ScreenWidth / 2)
+        NewXPos := Left
     }
 
-    AdjustValuesForOffset(&Left, XOffset, &Top, YOffset, &NewWindowWidth, WindowWidthDelta, &ScreenHeight, WindowHeightDelta)
+    AdjustValuesForOffset(&NewXPos, XOffset, &Top, YOffset, &NewWindowWidth, WindowWidthDelta, &ScreenHeight, WindowHeightDelta)
 
-    WinMove(Left, Top, NewWindowWidth, ScreenHeight, "A", , , )
+    WinMove(NewXPos, Top, NewWindowWidth, ScreenHeight, "A", , , )
 
 }
 
@@ -169,12 +163,12 @@ AdjustValuesForOffset(&XPos, XOffset, &YPos, YOffset, &Width, WidthDelta, &Heigh
     ScreenHeight := PxDistance(Bottom, Top)
 
     if(ScreenWidth > ScreenHeight) {
-        LeftMostPxValIncludingBorders := WindowXPos + XOffset
-        RightmostPxValIncludingBorders := WindowXPos + WindowWidthPX - (WindowWidthDelta / 2)
-        NewWindowWidth := GetWindowWidthBySnapState("#!Right", ScreenWidth, &LeftMostPxValIncludingBorders, RightmostPxValIncludingBorders)
-        NewXPos := LeftMostPxValIncludingBorders
+        LeftmostAbs := WindowXPos - (WindowWidthDelta / 2)
+        RightmostAbs := WindowXPos + WindowWidthPX - (WindowWidthDelta / 2)
+        NewWindowWidth := GetWindowWidthBySnapState("#!Right", ScreenWidth, Left, &LeftmostAbs, RightmostAbs)
+        NewXPos := LeftmostAbs
     } else {
-        NewWindowWidth := ScreenWidth / 2
+        NewWindowWidth := Round(ScreenWidth / 2)
         NewXPos := PxMidpoint(Right, Left)
     }
 
