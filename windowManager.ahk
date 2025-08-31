@@ -25,17 +25,17 @@ GetWindowWidthBySnapState(Hotkey, MonitorWidth, MonitorLeft, &LeftmostAbs, Right
                             ? (MonitorLeft + MonitorWidth) - RightmostAbs
                             : LeftmostAbs - MonitorLeft
 
-    if(DistanceFromEdge == OneHalfDistance) { ;halfposition
+    if(IsNear(DistanceFromEdge, OneHalfDistance)) { ;halfposition
 
         NewWidth := TwoThirdsDistance
         LeftmostAbs := GetXCoordinateFromArrowKeyPress(Hotkey, TwoThirdsDistance, MonitorWidth, MonitorLeft)
 
-    } else if(DistanceFromEdge == OneThirdDistance) { ;twothirdsposition
+    } else if(IsNear(DistanceFromEdge, OneThirdDistance)) { ;twothirdsposition
 
         NewWidth := OneThirdDistance
         LeftmostAbs := GetXCoordinateFromArrowKeyPress(Hotkey, OneThirdDistance, MonitorWidth, MonitorLeft)
 
-    } else if(DistanceFromEdge == TwoThirdsDistance) { ;onethirdposition
+    } else if(IsNear(DistanceFromEdge, TwoThirdsDistance)) { ;onethirdposition
 
         NewWidth := OneHalfDistance
         LeftmostAbs := GetXCoordinateFromArrowKeyPress(Hotkey, OneHalfDistance, MonitorWidth, MonitorLeft)
