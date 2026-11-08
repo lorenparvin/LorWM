@@ -1,1 +1,34 @@
-windowManager.exe
+# Build and publish output
+**/[Bb]in/
+**/[Oo]bj/
+**/[Aa]rtifacts/
+**/[Pp]ublish/
+
+# Test output
+**/TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# IDE and user-specific state
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.DotSettings.user
+
+# NuGet packages
+**/packages/
+*.nupkg
+*.snupkg
+
+# Local signing material
+*.pfx
+*.p12
+
+# Operating-system metadata
+.DS_Store
+Thumbs.db
