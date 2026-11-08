@@ -12,6 +12,11 @@ var tests = new (string Name, Action Run)[]
     ("Spatial navigation prefers an aligned monitor", SpatialNavigationPrefersAlignedMonitor),
     ("Hook matcher accepts exact modifiers", HookMatcherAcceptsExactModifiers),
     ("Hook matcher rejects extra modifiers", HookMatcherRejectsExtraModifiers),
+    ("Startup command quotes executable path", StartupCommandQuotesExecutablePath),
+    ("Startup command supports dotnet host", StartupCommandSupportsDotnetHost),
+    ("Startup registration defaults to approved", StartupRegistrationDefaultsToApproved),
+    ("Startup registration respects Windows disabled state", StartupRegistrationRespectsWindowsDisabledState),
+    ("Application icon is embedded and readable", ApplicationIconIsEmbeddedAndReadable),
 };
 
 var failures = 0;
@@ -117,6 +122,46 @@ static void HookMatcherRejectsExtraModifiers()
     HashSet<Keys> pressedKeys = [Keys.LWin, Keys.LMenu, Keys.LShiftKey, Keys.Left];
 
     Equal<HotkeyDefinition?>(null, matcher.Match(Keys.Left, pressedKeys));
+}
+
+static void StartupCommandQuotesExecutablePath()
+{
+    Equal(
+        "\"C:\\Program Files\\LorWM\\LorWM.exe\"",
+        StartupRegistration.CreateCommand(@"C:\Program Files\LorWM\LorWM.exe", @"C:\Program Files\LorWM\LorWM.dll"));
+}
+
+static void StartupCommandSupportsDotnetHost()
+{
+    Equal(
+        "\"C:\\Program Files\\dotnet\\dotnet.exe\" \"C:\\LorWM\\LorWM.dll\"",
+        StartupRegistration.CreateCommand(@"C:\Program Files\dotnet\dotnet.exe", @"C:\LorWM\LorWM.dll"));
+}
+
+static void StartupRegistrationDefaultsToApproved()
+{
+    Equal(true, StartupRegistration.IsStartupApproved(null));
+    Equal(true, StartupRegistration.IsStartupApproved(new byte[] { 2, 0, 0, 0 }));
+    Equal(true, StartupRegistration.IsStartupApproved(new byte[] { 6, 0, 0, 0 }));
+}
+
+static void StartupRegistrationRespectsWindowsDisabledState()
+{
+    Equal(false, StartupRegistration.IsStartupApproved(new byte[] { 3, 0, 0, 0 }));
+    Equal(false, StartupRegistration.IsStartupApproved(new byte[] { 7, 0, 0, 0 }));
+}
+
+static void ApplicationIconIsEmbeddedAndReadable()
+{
+    using var stream = typeof(StartupRegistration).Assembly
+        .GetManifestResourceStream("LorWM.Assets.LorWM.ico");
+    if (stream is null)
+    {
+        throw new InvalidOperationException("The application icon is not embedded.");
+    }
+
+    using var icon = new System.Drawing.Icon(stream);
+    Equal(true, icon.Width > 0 && icon.Height > 0);
 }
 
 static DisplayMonitor Monitor(nint handle, RectI bounds) =>

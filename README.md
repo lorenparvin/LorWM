@@ -60,7 +60,7 @@ dotnet run --project src/LorWM/LorWM.csproj -c Release
 
 The release executable is written to `src/LorWM/bin/Release/net10.0-windows/LorWM.exe`.
 
-LorWM appears in the notification area and does not open a main window. Right-click its tray icon and select **Exit LorWM** to stop it. Only one copy runs per Windows session.
+LorWM appears in the notification area and does not open a main window. Right-click its tray icon and select **Run on startup** to toggle automatic startup for the current Windows user, or select **Exit LorWM** to stop it. Only one copy runs per Windows session.
 
 ## Releases
 
