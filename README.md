@@ -62,6 +62,14 @@ The release executable is written to `src/LorWM/bin/Release/net10.0-windows/LorW
 
 LorWM appears in the notification area and does not open a main window. Right-click its tray icon and select **Exit LorWM** to stop it. Only one copy runs per Windows session.
 
+## Releases
+
+Because `main` requires pull requests, every push to `main` creates a SemVer-tagged GitHub Release. The first release uses the `VersionPrefix` declared in the application project (`0.1.0`). Later releases increment the latest strict `vMAJOR.MINOR.PATCH` tag's patch component by default.
+
+For an intentional minor or major release, raise `VersionPrefix` in `src/LorWM/LorWM.csproj` as part of the pull request. When the declared version is higher than the latest release tag, the workflow uses it exactly instead of applying a patch increment.
+
+Each release contains a self-contained `win-x64` ZIP, so users do not need to install the .NET runtime.
+
 Run the dependency-free geometry, monitor-selection, and hotkey-matching checks with:
 
 ```powershell
