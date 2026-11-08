@@ -1,15 +1,39 @@
-name: release-on-merge
+name: build-and-test
 
 on:
   push:
     branches: [main]
-
-permissions:
-  contents: write
+  pull_request:
+    branches: [main]
 
 jobs:
-  release:
+  build:
     runs-on: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore LorWM.sln
+
+      - name: Build
+        run: dotnet build LorWM.sln --configuration Release --no-restore
+
+      - name: Run checks
+        run: dotnet run --project tests/LorWM.Tests/LorWM.Tests.csproj --configuration Release --no-build
+
+  release:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: windows-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Check out merged commit
@@ -49,15 +73,6 @@ jobs:
           $version = $version.ToString(3)
           "version=$version" >> $env:GITHUB_OUTPUT
           "tag=v$version" >> $env:GITHUB_OUTPUT
-
-      - name: Restore dependencies
-        run: dotnet restore LorWM.sln
-
-      - name: Build
-        run: dotnet build LorWM.sln --configuration Release --no-restore
-
-      - name: Run checks
-        run: dotnet run --project tests/LorWM.Tests/LorWM.Tests.csproj --configuration Release --no-build
 
       - name: Publish self-contained Windows build
         shell: pwsh
